@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background: #4CAF50; color: white; padding: 10px; text-align: center; }
+        nav { width: 200px; float: left; background: #f4f4f4; padding: 15px; }
+        nav a { display: block; padding: 10px; color: #333; text-decoration: none; }
+        nav a:hover { background: #ddd; }
+        main { margin-left: 220px; padding: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #f2f2f2; }
+        .hidden { display: none; }
+        .fade { transition: opacity 0.5s; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Interactive Dashboard</h1>
+    </header>
+    <nav>
+        <a href="#" id="viewData">View Data</a>
+        <a href="#" id="viewChart">View Chart</a>
+    </nav>
+    <main>
+        <div id="dataView" class="fade">
+            <h2>Data Table</h2>
+            <input type="text" id="searchInput" placeholder="Search..." />
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">ID</th>
+                        <th onclick="sortTable(1)">Name</th>
+                        <th onclick="sortTable(2)">Category</th>
+                        <th onclick="sortTable(3)">Price</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+        <div id="chartView" class="hidden fade">
+            <h2>Data Chart</h2>
+            <canvas id="dataChart"></canvas>
+        </div>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const jsonData = {"name":"Test Project","version":"1.0.0","description":"A test project for the web application","features":["Feature 1","Feature 2","Feature 3"],"config":{"theme":"light","language":"en","showSidebar":true}};
+        const csvData = `id,name,category,price\n1,Product A,Electronics,199.99\n2,Product B,Books,29.99\n3,Product C,Clothing,49.99\n4,Product D,Electronics,299.99\n5,Product E,Home,89.99`;
+
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const dataView = document.getElementById('dataView');
+        const chartView = document.getElementById('chartView');
+
+        function loadData() {
+            const rows = csvData.split('\n').slice(1);
+            rows.forEach(row => {
+                const cols = row.split(',');
+                const tr = document.createElement('tr');
+                cols.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function sortTable(colIndex) {
+            const rows = Array.from(tableBody.rows);
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.cells[colIndex].textContent;
+                const bText = b.cells[colIndex].textContent;
+                return aText.localeCompare(bText);
+            });
+            tableBody.innerHTML = '';
+            sortedRows.forEach(row => tableBody.appendChild(row));
+        }
+
+        searchInput.addEventListener('input', () => {
+            const filter = searchInput.value.toLowerCase();
+            Array.from(tableBody.rows).forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
+        function showView(view) {
+            if (view === 'data') {
+                dataView.classList.remove('hidden');
+                chartView.classList.add('hidden');
+            } else {
+                dataView.classList.add('hidden');
+                chartView.classList.remove('hidden');
+                renderChart();
+            }
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('dataChart').getContext('2d');
+            const labels = ['Product A', 'Product B', 'Product C', 'Product D', 'Product E'];
+            const data = [199.99, 29.99, 49.99, 299.99, 89.99];
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Price',
+                        data: data,
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        document.getElementById('viewData').addEventListener('click', () => showView('data'));
+        document.getElementById('viewChart').addEventListener('click', () => showView('chart'));
+
+        loadData();
+        showView('data');
+    </script>
+</body>
+</html>
